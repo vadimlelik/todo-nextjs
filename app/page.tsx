@@ -3,6 +3,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 
+export interface Todo {
+  _id: string;
+  title: string;
+  completed: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 const fetchTodos = async () => {
   const res = await fetch('/api/todos');
   return res.json();
@@ -28,7 +36,7 @@ export default function Home() {
   });
 
   const toggleTodo = useMutation({
-    mutationFn: async (todo: any) =>
+    mutationFn: async (todo: Todo) =>
       fetch('/api/todos', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -67,7 +75,7 @@ export default function Home() {
       </form>
 
       <ul className='mt-4 space-y-2'>
-        {todos.map((todo: any) => (
+        {todos.map((todo: Todo) => (
           <li
             key={todo._id}
             className='flex justify-between items-center border p-2 rounded'
