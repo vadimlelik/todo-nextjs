@@ -36,17 +36,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
+          port: 22
           script: |
-            set -e
-
-            echo "🔁 Pulling latest image..."
             docker pull ${{ secrets.DOCKER_USERNAME }}/todo-nextjs:latest
-
-            echo "🛑 Stopping old container..."
-            docker compose -f /apps/todo-nextjs/docker-compose.yml down
-
-            echo "🚀 Starting new version..."
-            export MONGODB_URI=${{ secrets.MONGODB_URI }}
             docker compose -f /apps/todo-nextjs/docker-compose.yml up -d
-
-            echo "✅ Deployed successfully!"
