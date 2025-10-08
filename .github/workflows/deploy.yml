@@ -26,6 +26,8 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/todo-nextjs:latest
+          build-args: |
+            MONGODB_URI=${{ secrets.MONGODB_URI }}
 
       # ===== CD: Деплой на VPS через пароль =====
       - name: Deploy to Server

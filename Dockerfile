@@ -1,14 +1,11 @@
-# Build stage
 FROM node:20-alpine AS builder
 WORKDIR /app
+
 COPY package*.json ./
 RUN npm ci
+
+ARG MONGODB_URI
+ENV MONGODB_URI=${MONGODB_URI}
+
 COPY . .
 RUN npm run build
-
-# Production stage
-FROM node:20-alpine
-WORKDIR /app
-COPY --from=builder /app ./
-EXPOSE 3000
-CMD ["npm", "start"]
