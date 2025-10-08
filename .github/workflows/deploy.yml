@@ -38,6 +38,8 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
+          source: 'docker-compose.yml'
+          target: '/apps/todo-nextjs/docker-compose.yml'
           port: 22
           script: |
             set -e

@@ -2,16 +2,16 @@ version: '3.8'
 
 services:
   app:
-    build: .
+    image: cvivadim/todo-nextjs:latest
+    restart: always
     ports:
       - '3000:3000'
     environment:
-      - MONGODB_URI=mongodb://mongo:27017/todo
-    depends_on:
-      - mongo
+      - MONGODB_URI=${MONGODB_URI}
 
   mongo:
     image: mongo:7
+    restart: always
     volumes:
       - mongo_data:/data/db
 
