@@ -20,7 +20,7 @@ export default function Home() {
   const queryClient = useQueryClient();
   const [title, setTitle] = useState('');
 
-  const { data: todos = [] } = useQuery({
+  const { data: todos = [], isLoading } = useQuery({
     queryKey: ['todos'],
     queryFn: fetchTodos,
   });
@@ -75,20 +75,24 @@ export default function Home() {
       </form>
 
       <ul className='mt-4 space-y-2'>
-        {todos.map((todo: Todo) => (
-          <li
-            key={todo._id}
-            className='flex justify-between items-center border p-2 rounded'
-          >
-            <span
-              className={todo.completed ? 'line-through' : ''}
-              onClick={() => toggleTodo.mutate(todo)}
+        {isLoading ? (
+          <div className='text-center p-4 bg-gray-200'>Loading...</div>
+        ) : (
+          todos.map((todo: Todo) => (
+            <li
+              key={todo._id}
+              className='flex justify-between items-center border p-2 rounded'
             >
-              {todo.title}
-            </span>
-            <button onClick={() => deleteTodo.mutate(todo._id)}>❌</button>
-          </li>
-        ))}
+              <span
+                className={todo.completed ? 'line-through' : ''}
+                onClick={() => toggleTodo.mutate(todo)}
+              >
+                {todo.title}
+              </span>
+              <button onClick={() => deleteTodo.mutate(todo._id)}>❌</button>
+            </li>
+          ))
+        )}
       </ul>
     </main>
   );
