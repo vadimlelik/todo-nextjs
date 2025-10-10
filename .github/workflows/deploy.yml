@@ -40,9 +40,9 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: 22
           source: |
-            docker-compose.yml
-            nginx/conf.d/*
-            certs/*
+            todo-nextjs/docker-compose.yml
+            todo-nextjs/nginx/conf.d/*
+            todo-nextjs/certs/*
           target: /apps/todo-nextjs/
 
       # 6️⃣ Деплой через SSH
