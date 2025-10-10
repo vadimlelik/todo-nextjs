@@ -51,7 +51,7 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: 22
           source: 'certs/*'
-          target: '/apps/todo-nextjs/certs/'
+          target: '/apps/todo-nextjs'
 
       # 6️⃣ Деплой через SSH
       - name: Deploy to VPS
