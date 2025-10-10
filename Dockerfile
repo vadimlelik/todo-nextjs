@@ -1,5 +1,5 @@
 # ======================
-# Build stage
+# 🏗️ Stage 1: Build
 # ======================
 FROM node:20-alpine AS builder
 WORKDIR /app
@@ -7,6 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 
+# Передаём MONGODB_URI как аргумент
 ARG MONGODB_URI
 ENV MONGODB_URI=${MONGODB_URI}
 
@@ -14,7 +15,7 @@ COPY . .
 RUN npm run build
 
 # ======================
-# Production stage
+# 🚀 Stage 2: Runtime
 # ======================
 FROM node:20-alpine AS runner
 WORKDIR /app
@@ -29,6 +30,4 @@ COPY --from=builder /app/package*.json ./
 RUN npm ci --omit=dev
 
 EXPOSE 3000
-
-# Важно слушать 0.0.0.0, чтобы Nginx мог проксировать
-CMD ["npm", "start", "--", "-H", "0.0.0.0"]
+CMD ["npm", "start"]

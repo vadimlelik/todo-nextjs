@@ -12,9 +12,8 @@ services:
         MONGODB_URI: mongodb://mongo:27017/todo
     environment:
       - MONGODB_URI=mongodb://mongo:27017/todo
-      - NODE_ENV=production
-    ports:
-      - '3000:3000'
+    expose:
+      - '3000'
     depends_on:
       - mongo
 
@@ -28,7 +27,7 @@ services:
       - mongo_data:/data/db
 
   # ======================
-  # Nginx с поддоменами
+  # Nginx для поддоменов
   # ======================
   nginx:
     image: nginx:latest
@@ -44,3 +43,4 @@ services:
 
 volumes:
   mongo_data:
+  certs:
