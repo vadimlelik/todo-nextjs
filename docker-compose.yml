@@ -1,25 +1,44 @@
 version: '3.8'
 
 services:
+  # ======================
+  # Next.js приложение
+  # ======================
   app:
-    image: cvivadim/todo-nextjs:latest
-    restart: always
-    ports:
-      - '3000:3000'
+    build:
+      context: ./next-app
+      dockerfile: Dockerfile
+      args:
+        MONGODB_URI: mongodb://mongo:27017/todo
     environment:
       - MONGODB_URI=mongodb://mongo:27017/todo
-    depends_on:
-      - mongo
+    expose:
+      - '3000'
 
+  # ======================
+  # MongoDB
+  # ======================
   mongo:
     image: mongo:7
     restart: always
     volumes:
       - mongo_data:/data/db
-    healthcheck:
-      test: ['CMD', 'mongo', '--eval', "db.adminCommand('ping')"]
-      interval: 5s
-      retries: 5
+
+  # ======================
+  # Nginx для поддоменов
+  # ======================
+  nginx:
+    image: nginx:latest
+    restart: always
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./certs:/etc/ssl/certs
+    depends_on:
+      - app
 
 volumes:
   mongo_data:
+  certs:
