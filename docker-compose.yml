@@ -1,19 +1,15 @@
-version: '3.8'
+version:
+  '3.8'
 
-services:
   # ======================
   # Next.js приложение
   # ======================
+services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        MONGODB_URI: mongodb://mongo:27017/todo
+    image: cvivadim/todo-nextjs:latest
+    restart: always
     environment:
-      - MONGODB_URI=mongodb://mongo:27017/todo
-    expose:
-      - '3000'
+      - MONGODB_URI=${MONGODB_URI}
     depends_on:
       - mongo
 
