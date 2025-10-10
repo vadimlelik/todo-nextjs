@@ -1,15 +1,16 @@
-version:
-  '3.8'
+version: '3.9'
 
+services:
   # ======================
   # Next.js приложение
   # ======================
-services:
   app:
     image: cvivadim/todo-nextjs:latest
     restart: always
     environment:
       - MONGODB_URI=${MONGODB_URI}
+    expose:
+      - '3000'
     depends_on:
       - mongo
 
@@ -39,4 +40,3 @@ services:
 
 volumes:
   mongo_data:
-  certs:
