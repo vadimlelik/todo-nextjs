@@ -21,7 +21,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # 3️⃣ Сборка и пуш Docker-образа
+      # 3️⃣ Сборка и пуш Docker-образа Next.js
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
         with:
@@ -31,21 +31,23 @@ jobs:
           build-args: |
             MONGODB_URI=${{ secrets.MONGODB_URI }}
 
-      # 4️⃣ Копируем docker-compose.yml на сервер
-      - name: Upload deployment files
+      # 4️⃣ Упаковываем все deployment-файлы в архив
+      - name: Pack deployment files
+        run: |
+          tar czf deploy.tar.gz docker-compose.yml nginx/conf.d certs
+
+      # 5️⃣ Загружаем архив на сервер
+      - name: Upload deploy archive
         uses: appleboy/scp-action@v0.1.3
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: 22
-          source: |
-            docker-compose.yml
-            nginx/conf.d/*
-            certs/*
+          source: deploy.tar.gz
           target: /apps/todo-nextjs/
 
-      # 6️⃣ Деплой через SSH
+      # 6️⃣ Деплой на сервере через SSH
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -55,14 +57,20 @@ jobs:
           port: 22
           script: |
             set -e
-            echo "🔁 Pulling latest image..."
+            cd /apps/todo-nextjs
+
+            # Распаковываем файлы
+            tar xzf deploy.tar.gz
+            rm deploy.tar.gz
+
+            echo "🔁 Pulling latest Docker image..."
             docker pull ${{ secrets.DOCKER_USERNAME }}/todo-nextjs:latest
 
             echo "🛑 Stopping old containers..."
-            docker compose -f /apps/todo-nextjs/docker-compose.yml down || true
+            docker compose down || true
 
             echo "🚀 Starting new version..."
             export MONGODB_URI=${{ secrets.MONGODB_URI }}
-            docker compose -f /apps/todo-nextjs/docker-compose.yml up -d
+            docker compose up -d --build
 
             echo "✅ Deployment completed!"
