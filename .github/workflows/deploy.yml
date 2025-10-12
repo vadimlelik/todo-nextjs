@@ -10,17 +10,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout код
       - name: Checkout
         uses: actions/checkout@v4
 
+      # 2️⃣ Login в Docker Hub
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: List repo files
-        run: ls -R
+      # 3️⃣ Сборка и пуш Docker-образа
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
         with:
@@ -30,6 +31,7 @@ jobs:
           build-args: |
             MONGODB_URI=${{ secrets.MONGODB_URI }}
 
+      # 4️⃣ Загрузка конфигов и сертификатов на сервер
       - name: Upload deployment files
         uses: appleboy/scp-action@v0.1.3
         with:
@@ -39,10 +41,11 @@ jobs:
           port: 22
           source: |
             docker-compose.yml
-            nginx/conf.d/default.conf
+            nginx/conf.d/*
             certs/*
           target: /apps/todo-nextjs/
 
+      # 5️⃣ Деплой и обновление сертификатов через SSH
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -52,19 +55,35 @@ jobs:
           port: 22
           script: |
             set -e
-            echo "🔁 Pulling latest image..."
-            docker pull ${{ secrets.DOCKER_USERNAME }}/todo-nextjs:latest
 
-            echo "🛑 Stopping old containers..."
-            docker compose -f /apps/todo-nextjs/docker-compose.yml down || true
-
-            echo "📄 Writing Cloudflare token file..."
+            # 5.1 Создаем ini файл с токеном Cloudflare для Certbot
             mkdir -p /apps/todo-nextjs/certs
             echo "dns_cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}" > /apps/todo-nextjs/certs/cloudflare.ini
             chmod 600 /apps/todo-nextjs/certs/cloudflare.ini
 
-            echo "🚀 Starting new version..."
+            # 5.2 Pull последней версии образа
+            docker pull ${{ secrets.DOCKER_USERNAME }}/todo-nextjs:latest
+
+            # 5.3 Останавливаем старые контейнеры
+            docker compose -f /apps/todo-nextjs/docker-compose.yml down || true
+
+            # 5.4 Запускаем контейнеры
             export MONGODB_URI=${{ secrets.MONGODB_URI }}
             docker compose -f /apps/todo-nextjs/docker-compose.yml up -d
+
+            # 5.5 Автоматическое обновление сертификатов через Certbot
+            docker run --rm \
+              -v /apps/todo-nextjs/certs:/etc/letsencrypt \
+              -v /apps/todo-nextjs/certs:/var/lib/letsencrypt \
+              -e CLOUDFLARE_EMAIL=${{ secrets.CLOUDFLARE_EMAIL }} \
+              certbot/certbot certonly \
+              --dns-cloudflare \
+              --dns-cloudflare-credentials /etc/letsencrypt/cloudflare.ini \
+              --agree-tos \
+              --non-interactive \
+              -d "cvirko-vadim.ru" -d "*.cvirko-vadim.ru"
+
+            # 5.6 Перезагружаем Nginx, чтобы подхватить новые сертификаты
+            docker exec todo-nextjs_nginx_1 nginx -s reload
 
             echo "✅ Deployment completed!"
