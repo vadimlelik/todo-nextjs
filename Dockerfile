@@ -1,5 +1,5 @@
 # ======================
-# 🏗️ Stage 1: Build
+# 🏗️ Build Stage
 # ======================
 FROM node:20-alpine AS builder
 WORKDIR /app
@@ -7,15 +7,13 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 
-# Передаём MONGODB_URI как аргумент
-ARG MONGODB_URI
-ENV MONGODB_URI=${MONGODB_URI}
-
 COPY . .
+COPY .env .env
+
 RUN npm run build
 
 # ======================
-# 🚀 Stage 2: Runtime
+# 🚀 Run Stage
 # ======================
 FROM node:20-alpine AS runner
 WORKDIR /app
@@ -26,6 +24,7 @@ ENV PORT=3000
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/.env .env
 
 RUN npm ci --omit=dev
 
