@@ -1,25 +1,31 @@
 version: '3.9'
 
 services:
+  # ======================
   # Next.js приложение
+  # ======================
   app:
     image: cvivadim/todo-nextjs:latest
     restart: always
     environment:
       - MONGODB_URI=${MONGODB_URI}
-    depends_on:
-      - mongo
     expose:
       - '3000'
+    depends_on:
+      - mongo
 
+  # ======================
   # MongoDB
+  # ======================
   mongo:
     image: mongo:7
     restart: always
     volumes:
       - mongo_data:/data/db
 
-  # Nginx для HTTPS и поддоменов
+  # ======================
+  # Nginx для HTTPS
+  # ======================
   nginx:
     image: nginx:latest
     restart: always
@@ -32,8 +38,9 @@ services:
     depends_on:
       - app
 
-  # Certbot для автоматического обновления сертификатов
-  # -rR7cWoAfb7e_rkd9qb5Rz4W1cWl6aoTzBKhuXWp
+  # ======================
+  # Certbot для Cloudflare DNS
+  # ======================
   certbot:
     image: certbot/certbot
     volumes:
@@ -42,7 +49,7 @@ services:
     command: >
       sh -c "trap exit TERM;
              while :; do
-               certbot renew --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/cloudflare.ini --post-hook 'nginx -s reload';
+               certbot renew --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/cloudflare.ini --post-hook 'docker kill -s HUP nginx';
                sleep 12h;
              done"
 

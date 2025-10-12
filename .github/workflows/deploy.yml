@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Login to Docker Hub
@@ -28,7 +28,7 @@ jobs:
           build-args: |
             MONGODB_URI=${{ secrets.MONGODB_URI }}
 
-      - name: Upload deployment files to server
+      - name: Upload deployment files
         uses: appleboy/scp-action@v0.1.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -38,10 +38,9 @@ jobs:
           source: |
             docker-compose.yml
             nginx/conf.d/*
-            certs/cloudflare.ini
           target: /apps/todo-nextjs/
 
-      - name: Deploy on VPS
+      - name: Deploy to VPS
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -50,7 +49,19 @@ jobs:
           port: 22
           script: |
             set -e
+            echo "🔁 Pulling latest image..."
             docker pull ${{ secrets.DOCKER_USERNAME }}/todo-nextjs:latest
+
+            echo "🛑 Stopping old containers..."
             docker compose -f /apps/todo-nextjs/docker-compose.yml down || true
+
+            echo "📄 Writing Cloudflare token file..."
+            mkdir -p /apps/todo-nextjs/certs
+            echo "dns_cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}" > /apps/todo-nextjs/certs/cloudflare.ini
+            chmod 600 /apps/todo-nextjs/certs/cloudflare.ini
+
+            echo "🚀 Starting new version..."
             export MONGODB_URI=${{ secrets.MONGODB_URI }}
-            docker compose -f /apps/todo-nextjs/docker-compose.yml up -d --build
+            docker compose -f /apps/todo-nextjs/docker-compose.yml up -d
+
+            echo "✅ Deployment completed!"
