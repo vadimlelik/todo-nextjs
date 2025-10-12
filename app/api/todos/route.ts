@@ -5,6 +5,7 @@ import Todo from '@/models/Todo';
 export async function GET() {
   await connectToDB();
   const todos = await Todo.find().sort({ createdAt: -1 });
+  console.log(todos, 'todos');
   return NextResponse.json(todos);
 }
 
