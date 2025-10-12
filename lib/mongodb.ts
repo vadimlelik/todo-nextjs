@@ -1,32 +1,23 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI as string;
+const MONGODB_URI = process.env.MONGODB_URI!;
+let isConnected = false;
 
-if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable');
-}
-
-interface MongooseCache {
-  conn: typeof mongoose | null;
-  promise: Promise<typeof mongoose> | null;
-}
-
-declare global {
-  // let, а не const — чтобы не конфликтовал при hot-reload
-  var mongooseCache: MongooseCache | undefined;
-}
-
-const cached =
-  global.mongooseCache ||
-  (global.mongooseCache = { conn: null, promise: null });
-
-export async function connectDB(): Promise<typeof mongoose> {
-  if (cached.conn) return cached.conn;
-
-  if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI).then((m) => m);
+export async function connectToDB() {
+  if (isConnected) return;
+  console.log('🚀 MongoDB connecting...', MONGODB_URI);
+  for (let i = 0; i < 10; i++) {
+    try {
+      await mongoose.connect(MONGODB_URI);
+      isConnected = true;
+      console.log('✅ MongoDB connected');
+      break;
+    } catch (err) {
+      console.log(`⚠️ MongoDB not ready, retrying in 3s... (${i + 1}/10)`);
+      await new Promise((res) => setTimeout(res, 3000));
+    }
   }
 
-  cached.conn = await cached.promise;
-  return cached.conn;
+  if (!isConnected)
+    throw new Error('MongoDB connection failed after 10 retries');
 }
