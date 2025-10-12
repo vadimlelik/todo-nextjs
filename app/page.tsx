@@ -11,8 +11,12 @@ export interface Todo {
   updatedAt?: string;
 }
 
+// 🧩 Безопасный fetch — не ломает билд
 const fetchTodos = async () => {
+  if (typeof window === 'undefined') return []; // пропускаем вызов при билде
+
   const res = await fetch('/api/todos');
+  if (!res.ok) throw new Error('Failed to fetch todos');
   return res.json();
 };
 
