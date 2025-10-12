@@ -1,15 +1,24 @@
 version: '3.9'
 
 services:
+  mongo:
+    image: mongo:7
+    container_name: todo-nextjs_mongo
+    restart: always
+    ports:
+      - '27017:27017'
+
   app:
     build: .
     container_name: todo-nextjs_app
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - MONGODB_URI=${MONGODB_URI}
+      - MONGODB_URI=mongodb://mongo:27017/todos
     ports:
       - '3000:3000'
+    depends_on:
+      - mongo
 
   nginx:
     image: nginx:alpine
