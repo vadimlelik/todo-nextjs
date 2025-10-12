@@ -8,7 +8,6 @@ COPY package*.json ./
 RUN npm ci
 
 COPY . .
-COPY .env .env
 
 RUN npm run build
 
