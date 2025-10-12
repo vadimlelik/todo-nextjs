@@ -31,7 +31,7 @@ jobs:
           build-args: |
             MONGODB_URI=${{ secrets.MONGODB_URI }}
 
-      # 4️⃣ Загрузка конфигов и сертификатов на сервер
+      # 4️⃣ Копирование файлов на сервер
       - name: Upload deployment files
         uses: appleboy/scp-action@v0.1.3
         with:
@@ -45,7 +45,7 @@ jobs:
             certs
           target: /apps/todo-nextjs/
 
-      # 5️⃣ Деплой и обновление сертификатов через SSH
+      # 5️⃣ Деплой на сервер через SSH
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1.2.0
         with:
