@@ -41,8 +41,8 @@ jobs:
           port: 22
           source: |
             docker-compose.yml
-            nginx/conf.d/*
-            certs/*
+            nginx/conf.d
+            certs
           target: /apps/todo-nextjs/
 
       # 5️⃣ Деплой и обновление сертификатов через SSH
