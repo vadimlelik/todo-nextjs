@@ -3,18 +3,16 @@ version: '3.9'
 services:
   mongo:
     image: mongo:7
-    container_name: todo-nextjs_mongo
+    container_name: todo-nextjs-mongo
     restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: password
       MONGO_INITDB_DATABASE: todo
-  healthcheck:
-    test: ['CMD', 'mongo', '--eval', "db.adminCommand('ping')"]
-    interval: 5s
-    timeout: 5s
-    retries: 5
-
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo_data:/data/db
   app:
     build: .
     container_name: todo-nextjs_app
