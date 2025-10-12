@@ -36,6 +36,7 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: 22
           script: |
+            echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
             set -e
             echo "🔁 Pulling latest image..."
             docker pull ${{ secrets.DOCKER_USERNAME }}/todo-nextjs:latest
