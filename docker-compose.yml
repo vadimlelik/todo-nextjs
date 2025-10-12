@@ -1,58 +1,23 @@
 version: '3.9'
 
 services:
-  # ======================
-  # Next.js приложение
-  # ======================
   app:
-    image: cvivadim/todo-nextjs:latest
-    restart: always
+    build: .
+    container_name: todo-nextjs_app
     environment:
+      - NODE_ENV=production
+      - PORT=3000
       - MONGODB_URI=${MONGODB_URI}
-    expose:
-      - '3000'
-    depends_on:
-      - mongo
-
-  # ======================
-  # MongoDB
-  # ======================
-  mongo:
-    image: mongo:7
-    restart: always
-    volumes:
-      - mongo_data:/data/db
-
-  # ======================
-  # Nginx для HTTPS
-  # ======================
-  nginx:
-    image: nginx:latest
-    restart: always
     ports:
-      - '80:80'
+      - '3000:3000'
+
+  nginx:
+    image: nginx:alpine
+    container_name: todo-nextjs_nginx
+    ports:
       - '443:443'
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
-      - ./certs:/etc/ssl/certs
+      - ./certs:/etc/ssl/certs:ro
     depends_on:
       - app
-
-  # ======================
-  # Certbot для Cloudflare DNS
-  # ======================
-  certbot:
-    image: certbot/certbot
-    volumes:
-      - ./certs:/etc/letsencrypt
-    entrypoint: ''
-    command: >
-      sh -c "trap exit TERM;
-             while :; do
-               certbot renew --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/cloudflare.ini --post-hook 'docker kill -s HUP nginx';
-               sleep 12h;
-             done"
-
-volumes:
-  mongo_data:
-  certs:
