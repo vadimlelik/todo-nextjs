@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { connectToDB } from '@/lib/mongodb';
-import Todo from '@/models/Todo';
+import { Todo } from '@/models/Todo';
 
 export async function GET() {
   await connectToDB();
