@@ -38,7 +38,7 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/todo-nextjs:latest
 
             echo "🛑 Stopping old containers..."
-            docker compose -p todo-nextjs -f /apps/todo-nextjs/docker-compose.yml down -v || true
+            docker compose -p todo-nextjs -f /apps/todo-nextjs/docker-compose.yml down || true
 
             echo "🧹 Cleaning up old images..."
             docker image prune -af || true
