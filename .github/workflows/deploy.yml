@@ -25,8 +25,6 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/todo-nextjs:latest
-          build-args: |
-            MONGODB_URI=${{ secrets.MONGODB_URI }}
 
       - name: Deploy to VPS via SSH
         uses: appleboy/ssh-action@v1.2.0
@@ -34,18 +32,21 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
-          port: 22
           script: |
-            echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
             set -e
             echo "🔁 Pulling latest image..."
             docker pull ${{ secrets.DOCKER_USERNAME }}/todo-nextjs:latest
 
             echo "🛑 Stopping old containers..."
-            docker compose -f /apps/todo-nextjs/docker-compose.yml down || true
+            docker compose -p todo-nextjs -f /apps/todo-nextjs/docker-compose.yml down -v || true
+
+            echo "🧹 Cleaning up old images..."
+            docker image prune -af || true
 
             echo "🚀 Starting containers..."
-            export MONGODB_URI=${{ secrets.MONGODB_URI }}
-            docker compose -f /apps/todo-nextjs/docker-compose.yml up -d
+            docker compose -p todo-nextjs -f /apps/todo-nextjs/docker-compose.yml up -d
+
+            echo "⏳ Waiting for MongoDB to be healthy..."
+            sleep 15
 
             echo "✅ Deployment completed!"
