@@ -13,25 +13,29 @@ services:
       - '27017:27017'
     volumes:
       - mongo_data:/data/db
+
   app:
     build: .
-    container_name: todo-nextjs_app
+    container_name: todo-nextjs-app
     environment:
       - NODE_ENV=production
       - PORT=3000
       - MONGODB_URI=mongodb://root:password@mongo:27017/todo?authSource=admin
-    ports:
-      - '3000:3000'
     depends_on:
       - mongo
+    ports:
+      - '3000:3000'
 
   nginx:
     image: nginx:alpine
-    container_name: todo-nextjs_nginx
+    container_name: todo-nextjs-nginx
+    depends_on:
+      - app
     ports:
       - '443:443'
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - ./certs:/etc/ssl/certs:ro
-    depends_on:
-      - app
+
+volumes:
+  mongo_data:
